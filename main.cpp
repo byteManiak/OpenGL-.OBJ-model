@@ -12,6 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #ifdef _WIN32
 #define GLEW_STATIC
+#include "glew.c"
 #endif
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
