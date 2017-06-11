@@ -64,10 +64,10 @@ void generate_faces(std::vector< std::vector<GLuint> > &faces, std::ifstream &fi
     }
 }
 
-void draw_face(std::vector<GLuint> &face)
+void draw_face(std::vector<GLuint> &face, GLuint renderMode)
 {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*face.size(), face.data(), GL_STATIC_DRAW);
-    glDrawElements(GL_LINE_STRIP, face.size(), GL_UNSIGNED_INT, 0);
+    glDrawElements(renderMode, face.size(), GL_UNSIGNED_INT, 0);
 }
 
 GLvec3 operator/ (GLvec3 v, float d)
@@ -146,15 +146,25 @@ const char *f = "#version 330\n"
                 "void main() {\n"
                 "vec3 fogCol = vec3(fog_r, fog_g, fog_b);\n"
                 "float fog = clamp(distance(clamp(-pos.z, 0, 1), 0), 0, 1);\n"
-                "color = vec3(.7,1,0);\n"
+                "color = vec3(.7, 1, 0);\n"
                 "color = mix(fogCol, color, fog);}\n";
 
 int main(int argc, char **argv)
 {
+    GLuint renderMode = GL_TRIANGLE_FAN;
     if(argc!=2)
     {
-        std::cout << "Usage: GLtest file.obj\n";
-        return 1;
+        bool invalidArg = false;
+        if(argc==3)
+        {
+            if(std::string(argv[2])=="-w" || std::string(argv[2])=="--wireframe") renderMode = GL_LINE_STRIP;
+            else invalidArg = true;
+        }
+        else if(invalidArg || argc==1)
+        {
+            std::cout << "Usage: GLtest file.obj [-w|--wireframe]\n";
+            return 1;
+        }
     }
 
     srand(time(NULL));
@@ -248,7 +258,7 @@ int main(int argc, char **argv)
         glUniform1f(glGetUniformLocation(shader, "fog_b"), b);
 
         for(auto &&i : faces)
-            draw_face(i);
+            draw_face(i, renderMode);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
